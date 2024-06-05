@@ -11,6 +11,7 @@ import Terms from '../modules/Account/compontes/Terms';
 import ChangePassword from '../modules/Account/compontes/ChangePassword';
 import Privacy from '../modules/Account/compontes/Privacy';
 import Faqs from '../modules/Account/compontes/Faqs';
+import OrderList from '../modules/Home/OrderList';
 
 const Stack = createStackNavigator();
 
@@ -27,6 +28,7 @@ export default function ScreensNavigations() {
       <Stack.Screen name='Terms' component={Terms} options={{ headerShown: false }} />
       <Stack.Screen name='Privacy' component={Privacy} options={{ headerShown: false }} />
       <Stack.Screen name='Faqs' component={Faqs} options={{ headerShown: false }} />
+      <Stack.Screen name='orderList' component={OrderList} options={{ headerShown: false }} />
     </Stack.Navigator>
   </NavigationContainer>
   )

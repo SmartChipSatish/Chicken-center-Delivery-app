@@ -51,6 +51,7 @@ const styles=StyleSheet.create({
     modalTitle: {
       fontSize: 20,
       fontWeight: 'bold',
+      color:'#000',
       marginBottom: 16,
     },
     qrCodeImage: {
