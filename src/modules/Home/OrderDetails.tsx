@@ -11,10 +11,12 @@ import QRmodal from './Componets/QRmodal';
 
 interface Item {
   id: number;
-  name: string;
+  franchiseId: string;
   AssignedBy: string;
   location: string;
-  orderAt: string;
+  date: string;
+  items:any,
+  paymentStatus:string,
 }
 
 type RootStackParamList = {
@@ -29,6 +31,7 @@ interface OrderDetailsProps {
 
 const OrderDetails: React.FC<OrderDetailsProps> = ({ route }) => {
   const { item } = route.params;
+  console.log('item: ', item);
   const [otp, setOtp] = useState('');
   const navigation: any = useNavigation();
   const [headtext,setHeadtext]:any=useState(true)
@@ -64,6 +67,12 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ route }) => {
   };
 
 
+  const otpVerify = async ()=>{
+    if(!otp){
+      return console.log('Enter user OTP')
+    }
+  }
+
   return (
     <View style={styles.container}>
       <Animated.View style={[styles.header,{height:headerHeight}]}>        
@@ -82,29 +91,26 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ route }) => {
       </Animated.View>
       <View style={styles.content}>
         <View>
-          <View style={styles.ItemCard}>
-            <Image source={require('../../assets/logo.png')} style={styles.ItemImage} />
-            <Text style={styles.ItemCardText}>Chicken-Legs</Text>
-            <Text style={styles.ItemCardText}>
-              <INR name="inr" size={20} color={THEME_COLORS.secondary} />
-              30
-            </Text>
-          </View>
-          <View style={styles.ItemCard}>
-            <Image source={require('../../assets/logo.png')} style={styles.ItemImage} />
-            <Text style={styles.ItemCardText}>Chicken-Legs</Text>
-            <Text style={styles.ItemCardText}>
-              <INR name="inr" size={20} color={THEME_COLORS.secondary} />
-              30
-            </Text>
-          </View>
+          {
+            item?.items?.length > 0 ? item?.items?.map((item:any)=>{
+              return(
+                <View style={styles.ItemCard}>
+                <Image source={{uri:item?.imageUrl}} style={styles.ItemImage} />
+                <Text style={styles.ItemCardText}>{item.itemName}</Text>
+                <Text style={styles.ItemCardText}>
+                  <INR name="inr" size={20} color={THEME_COLORS.secondary} />
+                  {item?.amount}
+                </Text>
+              </View>
+              )}
+           ) : <Text style={styles.bold}>List Not found</Text>
+          }
         </View>
-
         <View style={styles.card1}>
-          <Text style={styles.detail}><Text style={styles.bold}>Name:</Text> {item.name}</Text>
+          <Text style={styles.detail}><Text style={styles.bold}>Name:</Text> {item.franchiseId}</Text>
           <Text style={styles.detail}><Text style={styles.bold}>AssignedBy:</Text> {item.AssignedBy}</Text>
           <Text style={styles.detail}><Text style={styles.bold}>Location:</Text> {item.location}</Text>
-          <Text style={styles.detail}><Text style={styles.bold}>OrderAt:</Text> {formatTimestamp(item.orderAt)}</Text>
+          <Text style={styles.detail}><Text style={styles.bold}>OrderAt:</Text> {formatTimestamp(item.date)}</Text>
           <View style={styles.inputContainer}>
             <TextInput
               style={styles.input}
@@ -118,9 +124,12 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ route }) => {
               <Text style={styles.verifyButtonText}>Verify</Text>
             </TouchableOpacity>
           </View>
+          {
+            item?.paymentStatus !== 'SUCCESS' &&
           <TouchableOpacity style={styles.button} onPress={() => setModalVisible(true)}>
             <Text style={styles.buttonText}>QR Code</Text>
           </TouchableOpacity>
+          }
           <TouchableOpacity style={styles.button}>
             <Text style={styles.buttonText}>Update Order</Text>
           </TouchableOpacity>
@@ -195,15 +204,14 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   ItemImage: {
-    width: 70,
-    height: 70,
+    width: 50,
+    height: 50,
+    borderRadius:100,
     resizeMode: 'contain'
   },
   ItemCardText: {
-    fontSize: 20,
+    fontSize: 18,
     color: '#000',
-    fontWeight: 'bold',
-    letterSpacing: 2,
   },
   card1: {
     padding: 16,

@@ -1,79 +1,47 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { FlatList } from 'react-native';
 import ItemCard from './itemCard';
 import { useNavigation } from '@react-navigation/native';
-
+import { useGetOrdersMutation } from '../../../store/services/ServiceApis';
+import { useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
+import { setordesCount } from '../../../store/slices';
 interface Item {
    id: number;
-   name: string;
-   AssignedBy: string;
-   location: String,
-   orderAt: string
+   franchiseId: any;
+   AssignedBy: any;
+   location: any,
+   date: string
 }
-
-const itemsData: Item[] = [
-   {
-      id: 1,
-      name: '665c30261f5c2d3ad0ce3727',
-      AssignedBy: 'Lingampalli Franchase',
-      location: "Kondapur",
-      orderAt: '2024-06-02T08:41:10.731+00:00'
-   },
-   {
-      id: 2,
-      name: '665c30261f5c2d3ad0ce3727',
-      AssignedBy: 'Lingampalli Franchase',
-      location: "Kondapur",
-      orderAt: '2024-06-02T08:41:10.731+00:00'
-   },
-   {
-      id: 3,
-      name: '665c30261f5c2d3ad0ce3727',
-      AssignedBy: 'Lingampalli Franchase',
-      location: "Kondapur",
-      orderAt: '2024-06-02T08:41:10.731+00:00'
-   },
-   {
-      id: 4,
-      name: '665c30261f5c2d3ad0ce3727',
-      AssignedBy: 'Lingampalli Franchase',
-      location: "Kondapur",
-      orderAt: '2024-06-02T08:41:10.731+00:00'
-   },
-   {
-      id: 5,
-      name: '665c30261f5c2d3ad0ce3727',
-      AssignedBy: 'Lingampalli Franchase',
-      location: "Kondapur",
-      orderAt: '2024-06-02T08:41:10.731+00:00'
-   },
-   {
-      id: 6,
-      name: '665c30261f5c2d3ad0ce3727',
-      AssignedBy: 'Lingampalli Franchase',
-      location: "Kondapur",
-      orderAt: '2024-06-02T08:41:10.731+00:00'
-   },
-   {
-      id: 7,
-      name: '665c30261f5c2d3ad0ce3727',
-      AssignedBy: 'Lingampalli Franchase',
-      location: "Kondapur",
-      orderAt: '2024-06-02T08:41:10.731+00:00'
-   },
-];
 
 const Items: React.FC = () => {
    const navigate: any = useNavigation()
+   const [ordersListApi] = useGetOrdersMutation() 
+   const [ordersList,setOrdersList]=useState<any>()
+   const user = useSelector((state:any)=>state?.reusableStore?.userInfo)
+   const dispatch = useDispatch()
+
+   const getOrdersList = async()=>{
+      const response = await ordersListApi(user?._id)
+      if(response){
+         let InprogressCount = response?.data?.filter((item:any)=> item?.orderStatus == 'In Process')
+         dispatch(setordesCount({total:response?.data?.length,inProgress:InprogressCount?.length}))
+         setOrdersList(response?.data)
+      }
+   }
+   useEffect(()=>{
+      getOrdersList()
+   },[user])
+
 return (
    <>
    {
-      itemsData?.length > 0 && itemsData?.map((item: Item,) => {
+      ordersList?.length > 0 && ordersList?.map((item: Item,) => {
          return (
             <ItemCard
-               itemName={item.name}
+               itemName={item.franchiseId}
                orderDetails={item.AssignedBy}
-               timeStamp={item.orderAt}
+               timeStamp={item.date}
                location={item.location}
                i={item.id}
                onViewPress={() => navigate.navigate('Order', { item })}

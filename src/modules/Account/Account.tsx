@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { THEME_COLORS } from '../../globalStyles/GlobalStyles';
 import CustomHeader from '../../Hooks/CustomHeader';
+import { useSelector } from 'react-redux';
 
 interface UserProfileProps {
   profileUrl: string;
@@ -12,8 +13,11 @@ interface UserProfileProps {
   email: string;
 }
 
-const UserProfile: React.FC<UserProfileProps> = ({ profileUrl, username='Narendra', phone=9573371381, email='dev.gvnarendra@gmail.com' }) => {
+const UserProfile: React.FC<UserProfileProps> = () => {
   const navigation :any= useNavigation();
+  const user = useSelector((state:any)=>state?.reusableStore?.userInfo)
+  console.log('user: ', user);
+
 
   return (
     <View style={styles.container}>
@@ -22,8 +26,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ profileUrl, username='Narendr
         <View style={styles.profileDetails}>
           <Image source={require('../../assets/User.webp')} style={styles.profileImage} />
           <View style={styles.detailsContainer}>
-            <Text style={styles.username}>{username}</Text>
-            <Text style={styles.detail}>{email}</Text>
+            <Text style={styles.username}>{user?.name}</Text>
+            <Text style={styles.detail}>{user?.email || user?.primaryNumber}</Text>
           </View>
         </View>
         <View style={styles.listContainer}>

@@ -4,8 +4,12 @@ import Header from './Componets/Header';
 import Card from './Componets/Card';
 import { THEME_COLORS } from '../../globalStyles/GlobalStyles';
 import Items from './Componets/Items';
+import { useSelector } from 'react-redux';
+
 
 const HomeScreen = () => {
+  const orders = useSelector((state:any)=>state?.reusableStore?.ordesCount)
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -13,8 +17,8 @@ const HomeScreen = () => {
       </View>
       <View style={styles.contentContainer}>
         <View style={styles.content1}>
-          <Card title='Total orders' value='40'/>
-          <Card title='In Progress' value='10'/>
+          <Card title='Total orders' value={orders?.total}/>
+          <Card title='In Progress' value={orders?.inProgress}/>
         </View>
         <View style={styles.content2}>
           <Text style={styles.OrdersText}>Your Assinged Order's :</Text>

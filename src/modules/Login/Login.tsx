@@ -1,23 +1,51 @@
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ImageBackground, Dimensions } from 'react-native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import {THEME_COLORS } from '../../globalStyles/GlobalStyles';
 import CustomText from '../../Hooks/CustomText';
 import Icon from 'react-native-vector-icons/Ionicons';
-
+import { useUserloginMutation } from '../../store/services/ServiceApis';
+import { useDispatch } from 'react-redux';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { setUser } from '../../store/slices';
 
 export default function Login() {
   const navigation :any= useNavigation();
-  const [email, setEmail] = useState('');
+  const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [loginUser] = useUserloginMutation()
+  const dispatch :any= useDispatch()
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
 
-  const handleLogin = () => {
-    navigation.navigate('Home');
+  const handleLogin = async () => {
+    if (!userName && !password) {
+      console.log('Enter Your Details')
+    } else if (!userName) {
+      console.log('Enter Your UserName')
+    } else if (!password) {
+      console.log('Enter Your Password')
+    } else {
+      try {
+        const response = await loginUser(
+          {
+            userName: userName,
+            password: password
+          }
+        ).unwrap();
+        if (response && response?.accessToken) {
+          dispatch(setUser(response?.userInfo))
+         await AsyncStorage.setItem('Accesstoken',JSON.stringify(response?.accessToken))
+         await AsyncStorage.setItem('RefreshToken',JSON.stringify(response?.refreshToken))
+         await AsyncStorage.setItem('userInfo',JSON.stringify(response?.userInfo))
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    }
   };
 
   return (
@@ -33,10 +61,10 @@ export default function Login() {
             <CustomText style={styles.label}>Email address</CustomText>
             <TextInput
               style={styles.textInput}
-              value={email}
+              value={userName}
               placeholderTextColor="#000"
               placeholder="Enter Your Email"
-              onChangeText={setEmail}
+              onChangeText={setUserName}
               autoCapitalize="none"
               keyboardType="email-address"
             />
@@ -110,6 +138,7 @@ const styles = StyleSheet.create({
     padding: height * 0.01,
     borderRadius: 3,
     borderWidth: 0.5,
+    color: '#000',
     borderColor: '#000',
     backgroundColor: '#fff',
   },
