@@ -1,4 +1,4 @@
-package com.delivery_app
+package com.KMMC
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
