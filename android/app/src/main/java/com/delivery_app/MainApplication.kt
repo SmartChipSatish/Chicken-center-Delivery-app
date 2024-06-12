@@ -1,4 +1,4 @@
-package com.delivery_app
+package com.KMMC
 
 import android.app.Application
 import com.facebook.react.PackageList
