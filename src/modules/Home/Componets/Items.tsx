@@ -5,12 +5,13 @@ import { useNavigation } from '@react-navigation/native';
 import { useGetOrdersMutation } from '../../../store/services/ServiceApis';
 import { useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
-import { setordesCount } from '../../../store/slices';
+import { setordesCount,setLoading } from '../../../store/slices';
 interface Item {
    id: number;
    franchiseId: any;
    AssignedBy: any;
-   location: any,
+   userId: any,
+   addressId:any,
    date: string
 }
 
@@ -22,12 +23,16 @@ const Items: React.FC = () => {
    const dispatch = useDispatch()
 
    const getOrdersList = async()=>{
+      dispatch(setLoading(true))
       const response = await ordersListApi(user?._id)
       if(response){
-         let InprogressCount = response?.data?.filter((item:any)=> item?.orderStatus == 'In Process')
+         let InprogressCount = await response?.data?.filter((item:any)=> item?.orderStatus == 'In Process')
          dispatch(setordesCount({total:response?.data?.length,inProgress:InprogressCount?.length}))
          setOrdersList(response?.data)
       }
+      setTimeout(()=>{
+         dispatch(setLoading(false))
+      },1000)
    }
    useEffect(()=>{
       getOrdersList()
@@ -39,10 +44,11 @@ return (
       ordersList?.length > 0 && ordersList?.map((item: Item,) => {
          return (
             <ItemCard
-               itemName={item.franchiseId}
-               orderDetails={item.AssignedBy}
+               itemName={item.franchiseId._id}
+               orderDetails={item.franchiseId.name}
                timeStamp={item.date}
-               location={item.location}
+               userDetails={item.userId}
+               addressId = {item.addressId}
                i={item.id}
                onViewPress={() => navigate.navigate('Order', { item })}
                />

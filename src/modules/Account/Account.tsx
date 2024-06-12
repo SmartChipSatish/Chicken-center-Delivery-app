@@ -16,9 +16,6 @@ interface UserProfileProps {
 const UserProfile: React.FC<UserProfileProps> = () => {
   const navigation :any= useNavigation();
   const user = useSelector((state:any)=>state?.reusableStore?.userInfo)
-  console.log('user: ', user);
-
-
   return (
     <View style={styles.container}>
       <CustomHeader tittle='Profile' Navigate='Home' />

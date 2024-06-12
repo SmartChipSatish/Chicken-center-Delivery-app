@@ -1,5 +1,5 @@
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ImageBackground, Dimensions } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ImageBackground, Dimensions, Keyboard } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import {THEME_COLORS } from '../../globalStyles/GlobalStyles';
 import CustomText from '../../Hooks/CustomText';
@@ -8,6 +8,7 @@ import { useUserloginMutation } from '../../store/services/ServiceApis';
 import { useDispatch } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setUser } from '../../store/slices';
+import Loading from '../../Hooks/Loading'
 
 export default function Login() {
   const navigation :any= useNavigation();
@@ -16,12 +17,20 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loginUser] = useUserloginMutation()
   const dispatch :any= useDispatch()
+  const [isload,setIsload] = useState(false)
+  const inputRef :any= useRef(null);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
 
   const handleLogin = async () => {
+    Keyboard.dismiss();
+    // Blur the input field to remove the cursor
+    if (inputRef.current) {
+        inputRef.current.blur();
+    }
+
     if (!userName && !password) {
       console.log('Enter Your Details')
     } else if (!userName) {
@@ -30,6 +39,7 @@ export default function Login() {
       console.log('Enter Your Password')
     } else {
       try {
+        setIsload(true)
         const response = await loginUser(
           {
             userName: userName,
@@ -41,9 +51,11 @@ export default function Login() {
          await AsyncStorage.setItem('Accesstoken',JSON.stringify(response?.accessToken))
          await AsyncStorage.setItem('RefreshToken',JSON.stringify(response?.refreshToken))
          await AsyncStorage.setItem('userInfo',JSON.stringify(response?.userInfo))
+         navigation.navigate('Main')
+         setIsload(false)
         }
       } catch (error) {
-        console.error('Error:', error);
+        setIsload(false)
       }
     }
   };
@@ -58,12 +70,13 @@ export default function Login() {
         <Text style={styles.summary}>Enter your credentials to access your account</Text>
         <View style={styles.inputWrapper}>
           <View style={styles.inputContainer}>
-            <CustomText style={styles.label}>Email address</CustomText>
+            <CustomText style={styles.label}>UserName</CustomText>
             <TextInput
+              ref={inputRef}
               style={styles.textInput}
               value={userName}
               placeholderTextColor="#000"
-              placeholder="Enter Your Email"
+              placeholder="Enter UserName"
               onChangeText={setUserName}
               autoCapitalize="none"
               keyboardType="email-address"
@@ -73,6 +86,7 @@ export default function Login() {
             <CustomText style={styles.label}>Password</CustomText>
             <View style={styles.passwordContainer}>
               <TextInput
+                ref={inputRef}
                 style={styles.inputPassword}
                 placeholder="Enter your password"
                 placeholderTextColor="#000"
@@ -91,6 +105,7 @@ export default function Login() {
           <Text style={styles.loginButtonText}>Login</Text>
         </TouchableOpacity>
       </ImageBackground>
+      {isload && <Loading />}
     </View>
   );
 }

@@ -6,31 +6,39 @@ import { THEME_COLORS } from '../../globalStyles/GlobalStyles';
 import Items from './Componets/Items';
 import { useSelector } from 'react-redux';
 import Location from './Componets/Location';
+import Loading from '../../Hooks/Loading';
 
 const HomeScreen = () => {
   const orders = useSelector((state: any) => state?.reusableStore?.ordesCount)
+  const isloading = useSelector((state: any) => state?.reusableStore?.Loading)
   const handleAddress = (location: any) => {
     const flat = location?.address?.split(',')?.shift() || '';
     console.log(flat)
   }
+  console.log(orders)
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Header />
       </View>
-      <Location handleAddress={handleAddress} />
+      {/* <Location handleAddress={handleAddress} /> */}    
       <View style={styles.contentContainer}>
-        <View style={styles.content1}>
+        {
+          (orders?.inProgress || orders?.total) && <View style={styles.content1}>
           <Card title='Total orders' value={orders?.total} />
           <Card title='In Progress' value={orders?.inProgress} />
         </View>
+        }
         <View style={styles.content2}>
-          <Text style={styles.OrdersText}>Your Assinged Order's :</Text>
+          {
+            !isloading && <Text style={styles.OrdersText}>Your Assinged Order's :</Text>
+          }
           <ScrollView >
-            {/* <Items /> */}
+            <Items />
           </ScrollView>
         </View>
       </View>
+      {isloading && <Loading />}
     </View>
   );
 };

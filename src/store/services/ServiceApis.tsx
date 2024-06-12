@@ -21,8 +21,15 @@ export const ApiServices= ApiService.injectEndpoints({
         url: `orders/ordersByQuery?deliveryAgentId=${id}`,
         method: 'GET',
       })
+    }),
+    updateOrder: builder.mutation({
+      query:(payload)=>({
+        url: `orders/updateOrder?orderId=${payload?.id}`,
+        method:'POST',
+        body:payload?.body
+      })
     })
    })
 })
 
-export const { useUserloginMutation, useGetOrdersMutation,useGetUserByidMutation} = ApiServices
+export const { useUserloginMutation, useGetOrdersMutation,useGetUserByidMutation,useUpdateOrderMutation} = ApiServices

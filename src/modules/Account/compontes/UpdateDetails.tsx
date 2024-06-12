@@ -11,7 +11,22 @@ export default function UpdateDetails() {
   const user = useSelector((state:any)=>state?.reusableStore?.userInfo)
   const [name, setName] = useState(user?.name);
   const [userName, setUserName] = useState(user?.userName);
-  const [primaryNumber, setPrimaryNumber] = useState(user?.primaryNumber);
+  const [primaryNumber, setPrimaryNumber] = useState(user?.primaryNumber.toString());
+  const [error,setError]:any =useState()
+
+  const updateProfile = async()=>{
+    if(!name && !userName && !primaryNumber){
+     return setError('all')
+    }else if(!name){
+     return setError('name')
+    } else if(!userName){
+      return setError('userName')
+     }
+     else if(!primaryNumber){
+      return setError('Phone')
+     }
+  }
+
   return (
     <View>
       <CustomHeader tittle='Update Profile' Navigate='Profile' />
@@ -25,7 +40,7 @@ export default function UpdateDetails() {
         <View style={styles.inputWrapper}>
           <Text style={styles.inputLable} >userName :</Text>
           <TextInput
-            style={styles.input}
+            style={error=='userName' ? [styles.input,{borderColor:'red'}] :styles.input}
             placeholder="userName"
             value={userName}
             placeholderTextColor='#000'
@@ -36,7 +51,7 @@ export default function UpdateDetails() {
         <View style={styles.inputWrapper}>
           <Text style={styles.inputLable} >Name :</Text>
           <TextInput
-            style={styles.input}
+            style={error=='name' ? [styles.input,{borderColor:'red'}] :styles.input}
             placeholder="userName"
             value={name}
             placeholderTextColor='#000'
@@ -47,16 +62,16 @@ export default function UpdateDetails() {
         <View style={styles.inputWrapper}>
           <Text style={styles.inputLable} >primaryNumber :</Text>
           <TextInput
-            style={styles.input}
+            style={error=='Phone' ? [styles.input,{borderColor:'red'}] :styles.input}
             placeholder="primaryNumber"
             value={primaryNumber}
             placeholderTextColor='#000'
-            keyboardType="numeric"
+            keyboardType='phone-pad'
             onChangeText={(e) => { setPrimaryNumber(e) }}
           />
         </View>
       </View>
-      <TouchableOpacity style={styles.button}>
+      <TouchableOpacity style={styles.button} onPress={()=>updateProfile()}>
             <Text style={styles.buttonText}>Update Order</Text>
       </TouchableOpacity>
     </View>

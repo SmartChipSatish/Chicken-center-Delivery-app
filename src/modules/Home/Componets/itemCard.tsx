@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { THEME_COLORS } from '../../../globalStyles/GlobalStyles';
 import {formatTimestamp} from '../../Utiles';
@@ -7,12 +7,21 @@ interface ItemsProps {
    itemName: string;
    orderDetails: string;
    timeStamp: String,
-   location: String,
+   userDetails: any,
    i:any
+   addressId:any
    onViewPress: () => void;
 }
 
-const ItemCard: React.FC<ItemsProps> = ({ itemName, orderDetails, timeStamp, location,i, onViewPress }) => {
+const ItemCard: React.FC<ItemsProps> = ({ itemName, orderDetails, timeStamp, userDetails,i,addressId, onViewPress }) => {
+
+   const getLocation = async(userDetails:any)=>{
+      if(userDetails?.secondaryAddress){
+         const location = userDetails?.secondaryAddress?.filter((address:any)=>address?._id === addressId)
+         return location?.length > 0 ? location[0].city  : 'No Address'
+      }
+   }
+
    return (
       <View style={styles.card} key={i}>
          <View style={styles.content}>
@@ -25,10 +34,10 @@ const ItemCard: React.FC<ItemsProps> = ({ itemName, orderDetails, timeStamp, loc
                <Text style={styles.bold}>Assigned By: </Text>
                <Text style={styles.orderDetails}>{orderDetails}</Text>
             </Text>
-            <Text>
+            {/* <Text>
                <Text style={styles.bold}>Location: </Text>
-               <Text style={styles.orderDetails}>{location}</Text>
-            </Text>
+               <Text style={styles.orderDetails}>{ userDetails?.primaryAddress?.name || userDetails?.secondaryAddress?.length > 0  && getLocation(userDetails)}</Text>
+            </Text> */}
             <TouchableOpacity style={styles.button} onPress={onViewPress}>
                <Text style={styles.buttonText}>Start Delivery</Text>
             </TouchableOpacity>

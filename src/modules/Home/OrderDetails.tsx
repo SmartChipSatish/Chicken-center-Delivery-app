@@ -7,11 +7,14 @@ import INR from 'react-native-vector-icons/FontAwesome'
 import { THEME_COLORS } from '../../globalStyles/GlobalStyles';
 import { formatTimestamp } from '../Utiles';
 import QRmodal from './Componets/QRmodal';
+import Addressmodal from './Componets/Addressmodal';
+import { useUpdateOrderMutation } from '../../store/services/ServiceApis';
+import Loading from '../../Hooks/Loading';
 
 
 interface Item {
   id: number;
-  franchiseId: string;
+  franchiseId: any;
   AssignedBy: string;
   location: string;
   date: string;
@@ -30,13 +33,15 @@ interface OrderDetailsProps {
 }
 
 const OrderDetails: React.FC<OrderDetailsProps> = ({ route }) => {
-  const { item } = route.params;
-  console.log('item: ', item);
+  const { item }:any = route.params;
   const [otp, setOtp] = useState('');
   const navigation: any = useNavigation();
   const [headtext,setHeadtext]:any=useState(true)
   const [headerHeight] = useState(new Animated.Value(height * 0.2));
   const [modalVisible, setModalVisible] = useState(false);
+  const [modalname,setModalname] = useState()
+  const [updateOrder] = useUpdateOrderMutation()
+  const [isloading,setIsloading] =useState(false)
 
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', _keyboardDidShow);
@@ -66,10 +71,32 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ route }) => {
     }).start();
   };
 
+  const modalOpen = (type:any) =>{
+    setModalVisible(true)
+    setModalname(type)
+  }
 
   const otpVerify = async ()=>{
     if(!otp){
       return console.log('Enter user OTP')
+    }
+  }
+
+  const updateOrderStatus = async ()=>{
+    try {
+      setIsloading(true)
+      _keyboardDidShow()
+      const payload = {
+        id:item?._id,
+        body:{
+          orderStatus:'DELIVERD'
+        }
+      }
+      const response =  await updateOrder(payload).unwrap()
+      navigation.navigate('Home')
+      setIsloading(false)
+    } catch (error) {
+      setIsloading(false)
     }
   }
 
@@ -89,6 +116,8 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ route }) => {
         </View>
         }
       </Animated.View>
+      {
+        !isloading && 
       <View style={styles.content}>
         <View>
           {
@@ -107,8 +136,8 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ route }) => {
           }
         </View>
         <View style={styles.card1}>
-          <Text style={styles.detail}><Text style={styles.bold}>Name:</Text> {item.franchiseId}</Text>
-          <Text style={styles.detail}><Text style={styles.bold}>AssignedBy:</Text> {item.AssignedBy}</Text>
+          <Text style={styles.detail}><Text style={styles.bold}>Name:</Text> {item.franchiseId?._id}</Text>
+          <Text style={styles.detail}><Text style={styles.bold}>AssignedBy:</Text> {item.franchiseId.name}</Text>
           <Text style={styles.detail}><Text style={styles.bold}>Location:</Text> {item.location}</Text>
           <Text style={styles.detail}><Text style={styles.bold}>OrderAt:</Text> {formatTimestamp(item.date)}</Text>
           <View style={styles.inputContainer}>
@@ -126,17 +155,27 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ route }) => {
           </View>
           {
             item?.paymentStatus !== 'SUCCESS' &&
-          <TouchableOpacity style={styles.button} onPress={() => setModalVisible(true)}>
+          <TouchableOpacity style={styles.button} onPress={() => modalOpen('QR')}>
             <Text style={styles.buttonText}>QR Code</Text>
           </TouchableOpacity>
           }
-          <TouchableOpacity style={styles.button}>
+          <TouchableOpacity style={styles.button} onPress={() => modalOpen('AD')}>
+            <Text style={styles.buttonText}>Address View On Map</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={()=>updateOrderStatus()}>
             <Text style={styles.buttonText}>Update Order</Text>
           </TouchableOpacity>
         </View>
       </View>
+      }
       {
-        modalVisible && <QRmodal modalVisible={modalVisible} setModalVisible={setModalVisible} />
+        isloading && <Loading />
+      }
+      {
+        modalVisible && modalname == 'QR' && <QRmodal modalVisible={modalVisible} setModalVisible={setModalVisible} />
+      }
+            {
+        modalVisible && modalname == 'AD' && <Addressmodal modalVisible={modalVisible} setModalVisible={setModalVisible} />
       }
     </View>
   );
