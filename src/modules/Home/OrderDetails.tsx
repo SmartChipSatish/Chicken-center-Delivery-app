@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Dimensions, Keyboard, Animated, Linking, PermissionsAndroid, Image } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Dimensions, Keyboard, Animated, Linking, PermissionsAndroid, Image,Platform } from 'react-native';
 import { RouteProp, useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import TimeIcon from 'react-native-vector-icons/MaterialCommunityIcons'
@@ -10,66 +10,32 @@ import QRmodal from './Componets/QRmodal';
 import Addressmodal from './Componets/Addressmodal';
 import { useUpdateOrderMutation } from '../../store/services/ServiceApis';
 import Loading from '../../Hooks/Loading';
-
-
-interface Item {
-  id: number;
-  franchiseId: any;
-  AssignedBy: string;
-  location: string;
-  date: string;
-  items:any,
-  paymentStatus:string,
-}
+import CustomHeader from '../../Hooks/CustomHeader';
+import Geocoder from 'react-native-geocoding';
+import Geolocation from '@react-native-community/geolocation';
 
 type RootStackParamList = {
-  OrderDetails: { item: Item };
+  OrderDetails: { item: any };
 };
 
 type OrderDetailsScreenRouteProp = RouteProp<RootStackParamList, 'OrderDetails'>;
-
 interface OrderDetailsProps {
   route: OrderDetailsScreenRouteProp;
 }
 
 const OrderDetails: React.FC<OrderDetailsProps> = ({ route }) => {
-  const { item }:any = route.params;
+  const { item } :any = route.params;
   const [otp, setOtp] = useState('');
   const navigation: any = useNavigation();
-  const [headtext,setHeadtext]:any=useState(true)
-  const [headerHeight] = useState(new Animated.Value(height * 0.2));
   const [modalVisible, setModalVisible] = useState(false);
   const [modalname,setModalname] = useState()
   const [updateOrder] = useUpdateOrderMutation()
   const [isloading,setIsloading] =useState(false)
-
-  useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', _keyboardDidShow);
-    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', _keyboardDidHide);
-
-    return () => {
-      keyboardDidHideListener.remove();
-      keyboardDidShowListener.remove();
-    };
-  }, []);
-
-  const _keyboardDidShow = () => {
-    setHeadtext(false)
-    Animated.timing(headerHeight, {
-      toValue: height * 0.1,
-      duration: 300,
-      useNativeDriver: false,
-    }).start();
-  };
-
-  const _keyboardDidHide = () => {
-    setHeadtext(true)
-    Animated.timing(headerHeight, {
-      toValue: height * 0.2,
-      duration: 300,
-      useNativeDriver: false,
-    }).start();
-  };
+  const [isVerify,setIsVerify]=useState(false)
+  const [location, setLocation] = useState<any>(null);
+  const [currentLatitude, setCurrentLatitude] = useState<number | null>(null);
+  const [currentLongitude, setCurrentLongitude] = useState<number | null>(null);
+  const inputRef :any= useRef(null);
 
   const modalOpen = (type:any) =>{
     setModalVisible(true)
@@ -77,7 +43,18 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ route }) => {
   }
 
   const otpVerify = async ()=>{
+    let myotp = `1234`
     if(!otp){
+      return console.log('Enter user OTP')
+    }
+    if(otp == myotp ){
+      Keyboard.dismiss();
+      if (inputRef.current) {
+          inputRef.current.blur();
+      }
+      setOtp('')
+      setIsVerify(true)
+    }else{
       return console.log('Enter user OTP')
     }
   }
@@ -85,7 +62,6 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ route }) => {
   const updateOrderStatus = async ()=>{
     try {
       setIsloading(true)
-      _keyboardDidShow()
       const payload = {
         id:item?._id,
         body:{
@@ -100,31 +76,51 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ route }) => {
     }
   }
 
+  const fetchLocation = async () => {
+    const address = await item?.userId?.secondaryAddress?.filter((ad: any) => ad?._id === item?.addressId);
+    const data = address?.length > 0 ? address[0] : 'No location found';
+    setLocation(data);
+  };
+
+  useEffect(() => {
+    fetchLocation();
+  }, []);
+
+  const openGoogleMaps = async () => {
+    Geocoder.init('AIzaSyC0gW5zGpTdX-XaxspBWi_jfCNYdIaJBsY');
+    Geolocation.getCurrentPosition(
+      position => {
+        setCurrentLatitude(position.coords.latitude);
+        setCurrentLongitude(position.coords.longitude);
+      },
+      error => {
+        console.error(error);
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+    );
+    if (currentLatitude && currentLongitude) {
+      const remoteLatitude = location?.location?.coordinates[0]; // Replace with actual remote latitude
+      const remoteLongitude = location?.location?.coordinates[1]; // Replace with actual remote longitude
+      const url = `https://www.google.com/maps/dir/?api=1&origin=${currentLatitude},${currentLongitude}&destination=${remoteLatitude},${remoteLongitude}`;
+      Linking.openURL(url);
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <Animated.View style={[styles.header,{height:headerHeight}]}>        
-      <View style={styles.headerWrapper}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('Home')}>
-          <Icon name="arrow-back" size={24} color="#fff" />
-        </TouchableOpacity>
-        <Text style={styles.headerText}>Order Details</Text>
-      </View>{
-        headtext && 
-        <View style={styles.headerContent}>
-          <TimeIcon name="timer-cog-outline" size={60} color="#fff" />
-          <Text style={styles.headerInnerText}>you have 40 minutes Time to delivery this order</Text>
-        </View>
-        }
-      </Animated.View>
+        <CustomHeader tittle={'Order Summary'} Navigate={'Home'} />
       {
         !isloading && 
       <View style={styles.content}>
         <View>
           {
-            item?.items?.length > 0 ? item?.items?.map((item:any)=>{
+            item?.items?.length > 0 ? item?.items?.map((item:any,i:any)=>{
               return(
-                <View style={styles.ItemCard}>
-                <Image source={{uri:item?.imageUrl}} style={styles.ItemImage} />
+                <View style={styles.ItemCard} key={i}>
+                <Text style={[styles.ItemCardText,styles.bold]}>
+                  {i+1} .
+                </Text>
+                <Image source={item?.imageUrl ? {uri:item?.imageUrl} : require('../../assets/Chicken.jpeg')} style={styles.ItemImage} />
                 <Text style={styles.ItemCardText}>{item.itemName}</Text>
                 <Text style={styles.ItemCardText}>
                   <INR name="inr" size={20} color={THEME_COLORS.secondary} />
@@ -135,37 +131,60 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ route }) => {
            ) : <Text style={styles.bold}>List Not found</Text>
           }
         </View>
+        <View style={styles.card}>
+        <Text style={[styles.bold,{color:THEME_COLORS.secondary},{fontSize:20},{marginBottom:10}]}>Order Details:</Text>
+            <Text style={styles.detail}>
+              OrderId:<Text style={[styles.bold]}> {`#${item._id}`}</Text> 
+            </Text>
+            <Text style={styles.detail}>
+                AssignedBy: <Text style={styles.bold}> {item.franchiseId.name}</Text> 
+            </Text>
+            <Text style={styles.detail}>
+               OrderAt:<Text style={styles.bold}> {formatTimestamp(item.date)}</Text> 
+            </Text>
+            <Text style={styles.detail}>
+               Total Items:<Text style={styles.bold}> {item?.totals?.quantity}</Text> 
+            </Text>
+            <Text style={styles.detail}>
+               Total Amount:<Text style={styles.bold}> {item?.totals?.amount}</Text> 
+            </Text>
+            <Text style={styles.detail}>
+              Location:<Text style={styles.bold}> {location?.city || 'Loading...'}</Text> 
+            </Text>
+        </View>
+        {
+          !isVerify &&
         <View style={styles.card1}>
-          <Text style={styles.detail}><Text style={styles.bold}>Name:</Text> {item.franchiseId?._id}</Text>
-          <Text style={styles.detail}><Text style={styles.bold}>AssignedBy:</Text> {item.franchiseId.name}</Text>
-          <Text style={styles.detail}><Text style={styles.bold}>Location:</Text> {item.location}</Text>
-          <Text style={styles.detail}><Text style={styles.bold}>OrderAt:</Text> {formatTimestamp(item.date)}</Text>
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter OTP"
-              placeholderTextColor='#000'
-              value={otp}
-              onChangeText={setOtp}
-              keyboardType="numeric"
-            />
-            <TouchableOpacity style={styles.verifyButton}>
-              <Text style={styles.verifyButtonText}>Verify</Text>
-            </TouchableOpacity>
-          </View>
+            <View style={styles.inputContainer}>
+              <TextInput
+                ref={inputRef}
+                style={styles.input}
+                placeholder="Enter OTP"
+                placeholderTextColor="#000"
+                value={otp}
+                onChangeText={setOtp}
+                keyboardType="numeric"
+              />
+              <TouchableOpacity style={styles.verifyButton} onPress={()=>otpVerify()}>
+                <Text style={styles.verifyButtonText}>Verify</Text>
+              </TouchableOpacity>
+            </View>
           {
-            item?.paymentStatus !== 'SUCCESS' &&
+            item?.paymentStatus !== 'SUCCESS' && isVerify  &&
           <TouchableOpacity style={styles.button} onPress={() => modalOpen('QR')}>
             <Text style={styles.buttonText}>QR Code</Text>
           </TouchableOpacity>
           }
-          <TouchableOpacity style={styles.button} onPress={() => modalOpen('AD')}>
+          <TouchableOpacity style={styles.button} onPress={()=>openGoogleMaps()}>
             <Text style={styles.buttonText}>Address View On Map</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.button} onPress={()=>updateOrderStatus()}>
+          {
+            isVerify && <TouchableOpacity style={styles.button} onPress={()=>updateOrderStatus()}>
             <Text style={styles.buttonText}>Update Order</Text>
-          </TouchableOpacity>
+            </TouchableOpacity>
+          }
         </View>
+        }
       </View>
       }
       {
@@ -174,55 +193,17 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ route }) => {
       {
         modalVisible && modalname == 'QR' && <QRmodal modalVisible={modalVisible} setModalVisible={setModalVisible} />
       }
-            {
+      {
         modalVisible && modalname == 'AD' && <Addressmodal modalVisible={modalVisible} setModalVisible={setModalVisible} />
       }
     </View>
   );
 };
 
-const { width, height } = Dimensions.get('window');
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-  },
-  header: {
-    backgroundColor: THEME_COLORS.secondary,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-  },
-  headerWrapper: {
-    flex: 1,
-    alignItems: 'center'
-  },
-  backButton: {
-    position: 'absolute',
-    left: 16,
-    top: 16,
-    padding: 8,
-  },
-  headerText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginTop: 15
-  },
-  headerContent: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignSelf: 'center',
-    paddingHorizontal: 40,
-    paddingVertical: 20,
-    gap: 40
-  },
-  headerInnerText: {
-    flex: 1,
-    fontSize: 18,
-    color: '#fff',
-    marginVertical: 1,
-    marginHorizontal: 10,
-    letterSpacing: 2
   },
   content: {
     flex: 1,
@@ -230,21 +211,16 @@ const styles = StyleSheet.create({
   },
   ItemCard: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'space-around',
     alignItems: 'center',
     paddingHorizontal: 10,
-    borderWidth: 1,
-    borderRadius: 20,
-    shadowColor: '#fff',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 10,
-    shadowRadius: 10,
-    elevation: 4,
+    paddingVertical:10,
+    borderRadius:10,
     marginBottom: 10,
   },
   ItemImage: {
-    width: 50,
-    height: 50,
+    width: 40,
+    height: 40,
     borderRadius:100,
     resizeMode: 'contain'
   },
@@ -252,17 +228,25 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#000',
   },
+  card: {
+    padding: 16,
+    borderRadius:5,
+    backgroundColor: '#fff',
+    marginBottom: 1,
+    borderColor:'#000'
+  },
   card1: {
     padding: 16,
-    gap: 16,
-    color: "#000",
+    gap: 10,
+    color: '#000',
     justifyContent: 'center',
-    alignContent: 'center'
+    alignContent: 'center',
   },
   detail: {
     fontSize: 16,
-    marginBottom: 8,
-    color: "#000"
+    marginBottom: 12,
+    color: '#000',
+    marginLeft:10
   },
   bold: {
     fontWeight: 'bold',
@@ -272,7 +256,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 16,
     marginBottom: 16,
-
   },
   input: {
     flex: 1,
