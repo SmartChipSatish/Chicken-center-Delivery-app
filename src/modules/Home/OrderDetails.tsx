@@ -36,6 +36,8 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ route }) => {
   const [currentLatitude, setCurrentLatitude] = useState<number | null>(null);
   const [currentLongitude, setCurrentLongitude] = useState<number | null>(null);
   const inputRef :any= useRef(null);
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+
 
   const modalOpen = (type:any) =>{
     setModalVisible(true)
@@ -44,16 +46,18 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ route }) => {
 
   const otpVerify = async ()=>{
     let myotp = `1234`
+    console.log('otp == myotp : ', otp == myotp );
     if(!otp){
       return console.log('Enter user OTP')
     }
     if(otp == myotp ){
+      console.log("Heeeee")
+      setIsVerify(true)
       Keyboard.dismiss();
       if (inputRef.current) {
           inputRef.current.blur();
       }
       setOtp('')
-      setIsVerify(true)
     }else{
       return console.log('Enter user OTP')
     }
@@ -84,6 +88,19 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ route }) => {
 
   useEffect(() => {
     fetchLocation();
+
+    const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
+      setKeyboardVisible(true);
+    });
+    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardVisible(false);
+    });
+
+    return () => {
+      keyboardDidHideListener.remove();
+      keyboardDidShowListener.remove();
+    };
+
   }, []);
 
   const openGoogleMaps = async () => {
@@ -105,7 +122,7 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ route }) => {
       Linking.openURL(url);
     }
   };
-
+console.log(isVerify)
   return (
     <View style={styles.container}>
         <CustomHeader tittle={'Order Summary'} Navigate={'Home'} />
@@ -113,24 +130,36 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ route }) => {
         !isloading && 
       <View style={styles.content}>
         <View>
-          {
-            item?.items?.length > 0 ? item?.items?.map((item:any,i:any)=>{
-              return(
-                <View style={styles.ItemCard} key={i}>
-                <Text style={[styles.ItemCardText,styles.bold]}>
-                  {i+1} .
-                </Text>
-                <Image source={item?.imageUrl ? {uri:item?.imageUrl} : require('../../assets/Chicken.jpeg')} style={styles.ItemImage} />
-                <Text style={styles.ItemCardText}>{item.itemName}</Text>
-                <Text style={styles.ItemCardText}>
-                  <INR name="inr" size={20} color={THEME_COLORS.secondary} />
-                  {item?.amount}
-                </Text>
-              </View>
-              )}
-           ) : <Text style={styles.bold}>List Not found</Text>
-          }
+        {item?.items?.length > 0 ? (
+              item?.items?.map((item: any, i: any) => (
+                <View style={styles.inlineCard} key={i}>
+                  <Text style={[styles.ItemCardText, styles.bold]}>
+                    {i + 1}.
+                  </Text>
+                  <Image
+                    source={item?.imageUrl ? { uri: item?.imageUrl } : require('../../assets/Chicken.jpeg')}
+                    style={styles.ItemImage}
+                  />
+                  <View style={styles.itemDetails}>
+                    <Text style={styles.ItemCardText}>{item.itemName}</Text>
+                    <View style={[styles.itemDetails,{flexDirection:'row'},{gap:20}]}>
+                      <Text style={styles.ItemCardText}>
+                        <Text style={styles.bold}>Price :</Text>
+                        {item?.amount}
+                      </Text>
+                      <Text style={styles.ItemCardText}>
+                        <Text style={styles.bold}>Quntity :</Text>{item?.itemQty}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              ))
+            ) : (
+              <Text style={styles.bold}>List Not found</Text>
+            )}
         </View>
+        {
+          !isKeyboardVisible && 
         <View style={styles.card}>
         <Text style={[styles.bold,{color:THEME_COLORS.secondary},{fontSize:20},{marginBottom:10}]}>Order Details:</Text>
             <Text style={styles.detail}>
@@ -151,11 +180,23 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ route }) => {
             <Text style={styles.detail}>
               Location:<Text style={styles.bold}> {location?.city || 'Loading...'}</Text> 
             </Text>
+            <View style={styles.inline}>
+              <Text style={styles.detail}>Payment Status: </Text>
+              <Text style={[
+                  styles.detail, 
+                  item.paymentStatus === 'PENDING' ? styles.badgePending 
+                     : item.paymentStatus === 'Cancelled' ? styles.badgeCanceled 
+                     : styles.badgePaid
+                  ]}>
+                {item.paymentStatus}
+              </Text>
+            </View>
         </View>
-        {
-          !isVerify &&
+        }
         <View style={styles.card1}>
-            <View style={styles.inputContainer}>
+            {
+              !isVerify &&
+              <View style={styles.inputContainer}>
               <TextInput
                 ref={inputRef}
                 style={styles.input}
@@ -169,7 +210,8 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ route }) => {
                 <Text style={styles.verifyButtonText}>Verify</Text>
               </TouchableOpacity>
             </View>
-          {
+            }
+            {
             item?.paymentStatus !== 'SUCCESS' && isVerify  &&
           <TouchableOpacity style={styles.button} onPress={() => modalOpen('QR')}>
             <Text style={styles.buttonText}>QR Code</Text>
@@ -184,7 +226,6 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ route }) => {
             </TouchableOpacity>
           }
         </View>
-        }
       </View>
       }
       {
@@ -192,9 +233,6 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ route }) => {
       }
       {
         modalVisible && modalname == 'QR' && <QRmodal modalVisible={modalVisible} setModalVisible={setModalVisible} />
-      }
-      {
-        modalVisible && modalname == 'AD' && <Addressmodal modalVisible={modalVisible} setModalVisible={setModalVisible} />
       }
     </View>
   );
@@ -209,20 +247,25 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
   },
-  ItemCard: {
+  inlineCard: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical:10,
-    borderRadius:10,
+    padding: 10,
+    gap:10,
+    borderRadius: 10,
     marginBottom: 10,
+    backgroundColor: '#f0f0f0',
   },
   ItemImage: {
-    width: 40,
-    height: 40,
-    borderRadius:100,
-    resizeMode: 'contain'
+    width: 50,
+    height: 50,
+    borderRadius: 5,
+    resizeMode: 'contain',
+    marginRight: 10,
+  },
+  itemDetails: {
+    flex: 1,
+    gap:2
   },
   ItemCardText: {
     fontSize: 18,
@@ -232,7 +275,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius:5,
     backgroundColor: '#fff',
-    marginBottom: 1,
+    marginBottom: 5,
     borderColor:'#000'
   },
   card1: {
@@ -254,7 +297,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: 2,
     marginBottom: 16,
   },
   input: {
@@ -286,6 +329,37 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#fff',
   },
+  inline: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  badgePending: {
+    backgroundColor: '#FEEBC8', 
+    color: '#DD6B20' ,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginLeft: 10,
+  },
+  badgePaid: {
+    backgroundColor: '#C6F6D5',
+    color: '#38A169',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginLeft: 10,
+  },
+  badgeCanceled :{
+    backgroundColor: '#FED7D7', 
+    color: '#E53E3E',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginLeft: 10,
+  }
 });
 
 export default OrderDetails;

@@ -47,6 +47,7 @@ const Items: React.FC<ItemsProps> = ({listName}) => {
             filterKey = 'DELIVERD'
          }
          const filterData = await ordersList?.filter((item:any)=>item.orderStatus == filterKey)
+         console.log('filterData: ', filterData);
          setViewOrders([...filterData])
          dispatch(setLoading(false))
       }else{
@@ -100,7 +101,7 @@ return (
                   ]}>
                 {item.orderStatus}
               </Text>
-              <TouchableOpacity style={[styles.button, (item.orderStatus === 'Cancelled' || item.orderStatus !== 'In Process') && {opacity:0.5} ]} onPress={() => navigate.navigate('Order', { item })} disabled={item.orderStatus === 'Cancelled' ? true : false}>
+              <TouchableOpacity style={[styles.button, (item.orderStatus === 'Cancelled' || item.orderStatus !== 'In Process') && {opacity:0.5} ]} onPress={() => {item.orderStatus === 'In Process' ? navigate.navigate('Order', { item }) : " "}} disabled={item.orderStatus !== 'In Process' ? true : false}>
                 <Text style={styles.buttonText}>
                   {item.orderStatus === 'In Process' ? 'Start Devlivery'
                      : item.orderStatus === 'Cancelled' ? 'Cancelled' : 'Completed' }
