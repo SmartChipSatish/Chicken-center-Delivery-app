@@ -32,11 +32,9 @@ const Items = () => {
       setIsLoading(true);
       try {
          const response = await ordersListApi({ userId: user?._id, orderStatus: selectedTab });
-         console.log(response, 'resp');
          if (response.data.length > 0) {
             setOrdersList((prev) => [...prev, ...response.data]);
          } else {
-            console.log('no data');
             setOrdersList([])
          }
       } catch (error) {
@@ -195,7 +193,7 @@ const styles = StyleSheet.create({
       flexDirection: 'row',
       alignItems: 'center',
       flex: 1,
-      justifyContent: 'space-evenly',
+      justifyContent: 'space-between',
    },
    noOrdersContainer: {
       flex: 1,
