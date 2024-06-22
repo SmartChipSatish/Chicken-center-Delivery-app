@@ -34,9 +34,7 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: THEME_COLORS.secondary,
-    padding: 10,
-    borderBottomLeftRadius: 10,
-    borderBottomRightRadius: 10,
+    padding: 10
   },
   contentContainer: {
     flex: 1,

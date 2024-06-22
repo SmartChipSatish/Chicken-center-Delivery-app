@@ -2,9 +2,12 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import EditIcon from 'react-native-vector-icons/FontAwesome';
 import { THEME_COLORS } from '../../globalStyles/GlobalStyles';
 import CustomHeader from '../../Hooks/CustomHeader';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { setUser } from '../../store/slices';
 
 interface UserProfileProps {
   profileUrl: string;
@@ -16,22 +19,32 @@ interface UserProfileProps {
 const UserProfile: React.FC<UserProfileProps> = () => {
   const navigation :any= useNavigation();
   const user = useSelector((state:any)=>state?.reusableStore?.userInfo)
+  const dispatch = useDispatch()
+
+  const Logout = async() =>{
+    await AsyncStorage.clear()
+    dispatch(setUser(''))
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Login' }],
+    });
+  }
+
   return (
     <View style={styles.container}>
       <CustomHeader tittle='Profile' Navigate='Home' />
       <View style={styles.content}>
         <View style={styles.profileDetails}>
-          <Image source={require('../../assets/User.webp')} style={styles.profileImage} />
+          <Image source={ user?.profileUrl ? {uri:user?.profileUrl}: require('../../assets/User.webp')} style={styles.profileImage} />
           <View style={styles.detailsContainer}>
             <Text style={styles.username}>{user?.name}</Text>
             <Text style={styles.detail}>{user?.email || user?.primaryNumber}</Text>
           </View>
+          <TouchableOpacity style={styles.button} onPress={()=>navigation.navigate('updateUser')}>
+              <EditIcon name="edit" size={25} color={THEME_COLORS.secondary} />
+          </TouchableOpacity>
         </View>
         <View style={styles.listContainer}>
-            <TouchableOpacity style={styles.listItem} onPress={()=>navigation.navigate('updateUser')}>
-              <Text style={styles.listItemText}>Update Details</Text>
-              <Icon name="arrow-forward-outline" size={20} color="#000" />
-            </TouchableOpacity>
             <TouchableOpacity style={styles.listItem} onPress={()=>navigation.navigate('ChangePassword')}>
               <Text style={styles.listItemText}>Change Password</Text>
               <Icon name="arrow-forward-outline" size={20} color="#000" />
@@ -51,13 +64,13 @@ const UserProfile: React.FC<UserProfileProps> = () => {
         </View>
       </View>
       <View style={styles.listContainer1}>
-          <TouchableOpacity style={styles.listItem}>
+          <TouchableOpacity style={styles.listItem} onPress={Logout}>
             <Text style={styles.listItemText}>Logout</Text>
             <Icon name="arrow-forward-outline" size={20} color="#000" />
           </TouchableOpacity>
           <TouchableOpacity style={styles.listItem1}>
-            <Text style={[styles.listItemText,styles.bold,{color:'#fff'}]}>Designed && Developed BY</Text>
-            <Text style={styles.listItemText}>SmartChip Technologies</Text>
+            <Text style={[styles.listItemText,styles.bold,{color:'#000'}]}>Designed & Developed BY</Text>
+            <Text style={[styles.listItemText,styles.bold,{color:'#000'}]}>SmartChip Technologies</Text>
           </TouchableOpacity>
         </View>
     </View>
@@ -77,6 +90,7 @@ const styles = StyleSheet.create({
   },
   profileDetails: {
     flexDirection: 'row',
+    alignItems:'center',
     marginBottom: 16,
   },
   profileImage: {
@@ -135,6 +149,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color:"#000"
   },
+  button: {
+    alignSelf: 'flex-start',
+    padding: 8,
+    marginTop:10,
+    borderRadius: 4,
+ },
+ buttonText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#fff',
+    textAlign: 'center',
+    letterSpacing: 2
+ },
 });
 
 export default UserProfile;

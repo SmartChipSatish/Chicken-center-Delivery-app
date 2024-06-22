@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, Dimensions, TouchableOpacity } from 'react-nati
 import React from 'react'
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { THEME_COLORS } from '../globalStyles/GlobalStyles'
+import { TEXT_COLORS, THEME_COLORS } from '../globalStyles/GlobalStyles'
 
 interface CustomHeaderProps{
    tittle:String,
@@ -29,10 +29,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   header: {
-    height: height * 0.1,
+    height: height * 0.08,
     backgroundColor: THEME_COLORS.secondary,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
@@ -40,13 +38,14 @@ const styles = StyleSheet.create({
   backButton: {
     position: 'absolute',
     left: 16,
-    top: 16,
+    top: 10,
     padding: 8,
   },
   headerText: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#fff',
+    color: TEXT_COLORS.whiteColor,
+    textTransform:'uppercase'
   },
 })
 

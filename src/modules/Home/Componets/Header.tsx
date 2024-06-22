@@ -3,9 +3,12 @@ import { View, Text, StyleSheet, TouchableOpacity,Image } from 'react-native';
 import AccountIcon from '../../../assets/Iocns/Account';
 import { THEME_COLORS } from '../../../globalStyles/GlobalStyles';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 
 const Header = () => {
   const navigation :any= useNavigation()
+  const user = useSelector((state:any)=>state?.reusableStore?.userInfo)
+
   return (
     <View style={styles.header}>
       <View style={styles.logoContainer}>
@@ -13,7 +16,7 @@ const Header = () => {
         <Text style={styles.logo}>KMMC</Text>
       </View>
       <TouchableOpacity style={styles.accountIcon} onPress={()=> navigation.navigate('Profile')}>
-         <AccountIcon fill={THEME_COLORS.primary} />
+          <AccountIcon fill={THEME_COLORS.primary} />
       </TouchableOpacity>
     </View>
   );

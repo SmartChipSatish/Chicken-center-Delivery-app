@@ -2,13 +2,14 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ImageBackground, D
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import {THEME_COLORS } from '../../globalStyles/GlobalStyles';
-import CustomText from '../../Hooks/CustomText';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useUserloginMutation } from '../../store/services/ServiceApis';
 import { useDispatch } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setUser } from '../../store/slices';
 import Loading from '../../Hooks/Loading'
+import { ShowToster } from '../Utiles';
+import { useToast } from 'react-native-toast-notifications';
 
 export default function Login() {
   const navigation :any= useNavigation();
@@ -19,6 +20,11 @@ export default function Login() {
   const dispatch :any= useDispatch()
   const [isload,setIsload] = useState(false)
   const inputRef :any= useRef(null);
+  const [errors, setErrors] = useState({
+    name: '',
+    password: ''
+  });
+  const toast = useToast()
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -26,18 +32,10 @@ export default function Login() {
 
   const handleLogin = async () => {
     Keyboard.dismiss();
-    // Blur the input field to remove the cursor
     if (inputRef.current) {
         inputRef.current.blur();
     }
-
-    if (!userName && !password) {
-      console.log('Enter Your Details')
-    } else if (!userName) {
-      console.log('Enter Your UserName')
-    } else if (!password) {
-      console.log('Enter Your Password')
-    } else {
+    if (validateFields()) {
       try {
         setIsload(true)
         const response = await loginUser(
@@ -54,10 +52,33 @@ export default function Login() {
          navigation.navigate('Main')
          setIsload(false)
         }
-      } catch (error) {
+      } catch (error:any) {
+        console.log('error: ', error);
         setIsload(false)
+        ShowToster(toast,error?.data?.message,'','error')
       }
     }
+  };
+
+  const validateFields = () => {
+    let valid = true;
+    let errorsCopy = { name: '', password: '' };
+
+    if(!userName.trim() && !password){
+      ShowToster(toast,'All filed are required' , '' , 'error' )
+      valid = false;
+      return;
+    }
+    if (!userName.trim()) {
+      errorsCopy.name = 'Name is required.';
+      valid = false;
+    }
+    if (!password) {
+      errorsCopy.password = 'Password is required';
+      valid = false;
+    }
+    setErrors(errorsCopy);
+    return valid;
   };
 
   return (
@@ -66,14 +87,14 @@ export default function Login() {
         source={require('../../assets/bg.png')}
         style={styles.backgroundImage}
       >
-        <CustomText style={styles.title}>Hey, Hello 👋</CustomText>
+        <Text style={styles.title}>Hey, Hello 👋</Text>
         <Text style={styles.summary}>Enter your credentials to access your account</Text>
         <View style={styles.inputWrapper}>
           <View style={styles.inputContainer}>
-            <CustomText style={styles.label}>UserName</CustomText>
+            <Text style={styles.label}>UserName</Text>
             <TextInput
               ref={inputRef}
-              style={styles.textInput}
+              style={[styles.textInput, errors?.name?.length > 0 ? {borderColor:'red'} :{}]}
               value={userName}
               placeholderTextColor="#000"
               placeholder="Enter UserName"
@@ -82,9 +103,10 @@ export default function Login() {
               keyboardType="email-address"
             />
           </View>
+          {errors.name ? <Text style={styles.errorText}>{errors.name}</Text> : null}
           <View style={styles.inputPasswordContainer}>
-            <CustomText style={styles.label}>Password</CustomText>
-            <View style={styles.passwordContainer}>
+            <Text style={styles.label}>Password</Text>
+            <View style={[styles.passwordContainer,errors?.password?.length > 0 ? {borderColor:'red'} :{}]}>
               <TextInput
                 ref={inputRef}
                 style={styles.inputPassword}
@@ -100,6 +122,7 @@ export default function Login() {
               </TouchableOpacity>
             </View>
           </View>
+          {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
         </View>
         <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
           <Text style={styles.loginButtonText}>Login</Text>
@@ -193,5 +216,12 @@ const styles = StyleSheet.create({
     fontSize: width * 0.07,
     letterSpacing:2,
   },
+  errorText: {
+    color: 'red',
+    textAlign: 'left',
+    marginLeft: 8,
+    alignSelf: 'flex-start',
+    marginBottom: 16,
+  }
 });
 

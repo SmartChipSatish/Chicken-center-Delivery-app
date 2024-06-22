@@ -7,6 +7,9 @@ import ScreensContainer from './ScreensContainer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import SplashScreen from 'react-native-splash-screen';
 import BeforLoginScreens from './BeforLoginScreens';
+import { ToastProvider } from 'react-native-toast-notifications';
+import CustomToast from '../Hooks/CustomToast';
+
 
 export default function ScreensNavigations() {
   const [login, setLogin] = useState(false);
@@ -31,7 +34,21 @@ export default function ScreensNavigations() {
   return (
     <Provider store={store}>
       <NavigationContainer>
-       { login ? <ScreensContainer /> : <BeforLoginScreens/> } 
+      <ToastProvider
+        renderType={{
+          custom_type: (toast) => (
+            <CustomToast
+              message={toast.message}
+              title={toast.data?.title}
+              type={toast.data?.type}
+              color={toast.data?.color}
+              sideColor={toast.data?.sideColor}
+            />
+          )
+        }}
+      >
+        { login ? <ScreensContainer /> : <BeforLoginScreens/> } 
+      </ToastProvider>
       </NavigationContainer>
     </Provider>
   )

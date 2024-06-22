@@ -3,7 +3,6 @@ import { View, StyleSheet, Text, TouchableOpacity, ScrollView, Pressable } from 
 import { useNavigation } from '@react-navigation/native';
 import { useGetOrdersMutation } from '../../../store/services/ServiceApis';
 import { useSelector, useDispatch } from 'react-redux';
-import { setordesCount, setLoading } from '../../../store/slices';
 import { formatDate, formatTimestamp } from '../../Utiles';
 import { TEXT_COLORS, THEME_COLORS } from '../../../globalStyles/GlobalStyles';
 import TabButton from './TabButton';
