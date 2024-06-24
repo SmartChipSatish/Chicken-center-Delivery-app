@@ -31,7 +31,7 @@ const Items = () => {
       setIsLoading(true);
       try {
          const response = await ordersListApi({ userId: user?._id, orderStatus: selectedTab });
-         if (response.data.length > 0) {
+         if (response?.data?.length > 0) {
             setOrdersList((prev) => [...prev, ...response.data]);
          } else {
             setOrdersList([])
@@ -43,8 +43,10 @@ const Items = () => {
    }
 
    const handleTabPress = (tab: React.SetStateAction<string>) => {
-      setSelectedTab(tab);
-      setOrdersList([]);
+      if (selectedTab !== tab) {
+         setSelectedTab(tab);
+         setOrdersList([]);
+      }
    };
 
    useEffect(() => {
