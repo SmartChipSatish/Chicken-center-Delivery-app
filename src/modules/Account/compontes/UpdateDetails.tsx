@@ -1,5 +1,5 @@
-import { View, Text, Dimensions, StyleSheet, Image, TouchableOpacity } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import { View, Text, Dimensions, StyleSheet, Image, TouchableOpacity, Keyboard } from 'react-native'
+import React, { useEffect, useRef, useState } from 'react'
 import CustomHeader from '../../../Hooks/CustomHeader'
 import { TextInput } from 'react-native-gesture-handler'
 import { THEME_COLORS } from '../../../globalStyles/GlobalStyles'
@@ -30,8 +30,13 @@ export default function UpdateDetails() {
   const [updateUser] = useUpdateUserMutation()
   const dispatch = useDispatch()
   const toast = useToast()
+  const inputRef: any = useRef(null);
 
   const updateProfile = async () => {
+    Keyboard.dismiss()
+    if (inputRef.current) {
+      inputRef.current.blur();
+    }
     if (validateFields()) {
       let payload: any = {
         id: user?._id,
@@ -139,6 +144,22 @@ export default function UpdateDetails() {
     return valid;
   };
 
+  const CancelUpdate = async ()=>{
+    try {
+      setErrors({
+        name: '',
+        primaryNumber: ''
+      })
+      setName(user?.name),
+      setPrimaryNumber(user?.primaryNumber.toString())
+      setAvatarUri(user?.profileUrl)
+      setIsEdited(false)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+
   return (
     <View>
       <CustomHeader tittle='Update Profile' Navigate='Profile' />
@@ -164,6 +185,7 @@ export default function UpdateDetails() {
           <Text style={styles.inputLable} >Name :</Text>
           <TextInput
             style={styles.input}
+            ref={inputRef}
             placeholder="userName"
             value={name}
             placeholderTextColor='#000'
@@ -176,6 +198,7 @@ export default function UpdateDetails() {
           <Text style={styles.inputLable} >primaryNumber :</Text>
           <TextInput
             style={styles.input}
+            ref={inputRef}
             placeholder="primaryNumber"
             value={primaryNumber}
             placeholderTextColor='#000'
@@ -185,9 +208,14 @@ export default function UpdateDetails() {
         </View>
         {errors.primaryNumber ? <Text style={styles.errorText}>{errors.name}</Text> : null}
       </View>
-      <TouchableOpacity style={[styles.button, !isEdited && { opacity: 0.5 }]} onPress={() => { isEdited ? updateProfile() : '' }} disabled={isEdited ? false : true}>
-        <Text style={styles.buttonText}>Update Profile</Text>
-      </TouchableOpacity>
+      <View style={{flexDirection:'row'}}>
+        <TouchableOpacity style={[styles.button, !isEdited && { opacity: 0.5 }]} onPress={() => { isEdited ? CancelUpdate() : '' }} disabled={isEdited ? false : true}>
+          <Text style={styles.buttonText}>Cancel</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.button, !isEdited && { opacity: 0.5 }]} onPress={() => { isEdited ? updateProfile() : '' }} disabled={isEdited ? false : true}>
+          <Text style={styles.buttonText}>Update Profile</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   )
 }
@@ -239,6 +267,7 @@ const styles = StyleSheet.create({
     marginTop: 10
   },
   button: {
+    width:"35%",
     backgroundColor: THEME_COLORS.secondary,
     padding: 12,
     borderRadius: 4,
@@ -253,8 +282,7 @@ const styles = StyleSheet.create({
   errorText: {
     color: 'red',
     textAlign: 'left',
-    marginLeft: 16,
-    alignSelf: 'flex-start',
+    alignSelf: 'center',
     marginBottom: 16,
   }
 });

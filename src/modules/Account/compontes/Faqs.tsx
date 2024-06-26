@@ -61,17 +61,21 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 16,
+    color:"#000"
   },
   faqItem: {
     marginBottom: 16,
+    color:"#000"
   },
   question: {
     fontSize: 18,
     fontWeight: 'bold',
+    color:"#000"
   },
   answer: {
     fontSize: 16,
     lineHeight: 24,
     marginTop: 8,
+    color:"#000"
   },
 });

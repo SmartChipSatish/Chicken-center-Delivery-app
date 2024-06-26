@@ -1,5 +1,5 @@
-import { View, Text, TextInput, Button, Alert, StyleSheet, TouchableOpacity } from 'react-native'
-import React, { useState } from 'react'
+import { View, Text, TextInput, Button, Alert, StyleSheet, TouchableOpacity, Keyboard } from 'react-native'
+import React, { useRef, useState } from 'react'
 import CustomHeader from '../../../Hooks/CustomHeader'
 import { useDispatch, useSelector } from 'react-redux';
 import { THEME_COLORS } from '../../../globalStyles/GlobalStyles';
@@ -18,6 +18,7 @@ export default function ChangePassword() {
     newPassword: '',
     confirmPassword:'',
   });
+  const inputRef: any = useRef(null);
 
 
   const validateFields = () => {
@@ -46,6 +47,10 @@ export default function ChangePassword() {
   };
 
   const updatePasswordHandler = async () => {
+    Keyboard.dismiss()
+    if (inputRef.current) {
+      inputRef.current.blur();
+    }
     if (validateFields()) {
       let payload: any = {
         id: user?._id,
@@ -56,9 +61,11 @@ export default function ChangePassword() {
       };
 
       try {
-        console.log(payload);
         // const response = await dispatch(updatePassword(payload)).unwrap();
         Alert.alert('Success', 'Password updated successfully.');
+        setConfirmPassword('')
+        setCurrentPassword('')
+        setNewPassword('')
       } catch (error) {
         console.error(error);
         Alert.alert('Error', 'Failed to update password.');
@@ -73,21 +80,25 @@ export default function ChangePassword() {
       <View style={styles.inputWrapper}>
       <Text style={styles.inputLable} >Current Password :</Text>
       <TextInput
-            style={styles.input}
-            placeholder="Current Password"
-            value={currentPassword}
-            onChangeText={setCurrentPassword}
-            secureTextEntry={true}
+        style={styles.input}
+        placeholder="Current Password"
+        placeholderTextColor='#000'
+        value={currentPassword}
+        onChangeText={setCurrentPassword}
+        secureTextEntry={true}
+        ref={inputRef}
       />
       </View>
       <View style={styles.inputWrapper}>
       <Text style={styles.inputLable} >New Password :</Text>
       <TextInput
         placeholder="New Password"
+        placeholderTextColor='#000'
         value={newPassword}
         onChangeText={setNewPassword}
         secureTextEntry={true}
         style={styles.input}
+        ref={inputRef}
       />
       </View>
       {errors.newPassword ? <Text style={styles.errorText}>{errors.newPassword}</Text> : null}
@@ -95,10 +106,12 @@ export default function ChangePassword() {
       <Text style={styles.inputLable} >Confirm New Password :</Text>
       <TextInput
         placeholder="Confirm New Password"
+        placeholderTextColor='#000'
         value={confirmPassword}
         onChangeText={setConfirmPassword}
         secureTextEntry={true}
         style={styles.input}
+        ref={inputRef}
       />
       </View>
       {errors.confirmPassword ? <Text style={styles.errorText}>{errors.confirmPassword}</Text> : null}

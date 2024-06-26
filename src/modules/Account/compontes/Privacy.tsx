@@ -77,11 +77,13 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 16,
+    color:"#000"
   },
   text: {
     fontSize: 16,
     lineHeight: 24,
     marginBottom: 16,
+    color:"#000"
   },
   button: {
     backgroundColor: THEME_COLORS.secondary,

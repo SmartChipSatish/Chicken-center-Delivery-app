@@ -31,11 +31,7 @@ const Items = () => {
       setIsLoading(true);
       try {
          const response = await ordersListApi({ userId: user?._id, orderStatus: selectedTab });
-         if (response?.data?.length > 0) {
-            setOrdersList((prev) => [...prev, ...response.data]);
-         } else {
-            setOrdersList([])
-         }
+         setOrdersList([ ...response.data]);
       } catch (error) {
          console.log(error);
       }
@@ -44,8 +40,8 @@ const Items = () => {
 
    const handleTabPress = (tab: React.SetStateAction<string>) => {
       if (selectedTab !== tab) {
-         setSelectedTab(tab);
-         setOrdersList([]);
+      setSelectedTab(tab);
+      setOrdersList([]);
       }
    };
 
@@ -108,10 +104,7 @@ const Items = () => {
                                     <RightArrowIcon />
                                  </View>
                               </View>
-
-
                            </View>
-
                         </View>
                      </Pressable>
                   )
