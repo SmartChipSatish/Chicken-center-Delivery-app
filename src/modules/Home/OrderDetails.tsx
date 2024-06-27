@@ -9,6 +9,7 @@ import Loading from '../../Hooks/Loading';
 import CustomHeader from '../../Hooks/CustomHeader';
 import OrderStatusButton from './Componets/OrderStatusButton';
 import { useToast } from 'react-native-toast-notifications';
+import { CallLogo } from '../../assets/Iocns/CallIcon';
 
 type RootStackParamList = {
   OrderDetails: { item: any };
@@ -114,6 +115,10 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ route }) => {
     return valid;
   }
 
+  const handleCall=(number:string)=>{
+    Linking.openURL(`tel:${number}`);
+   }
+
   return (
     <View style={styles.container}>
       <CustomHeader tittle={'Order Summary'} Navigate={'Home'} />
@@ -145,8 +150,15 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ route }) => {
                 <Text style={[styles.AlltexFonts, styles.textColor]}>#{item?._id}</Text>
                 <Text style={styles.AlltextColors}>UserName</Text>
                 <Text style={styles.AlltexFonts}>{item?.userId?.name}</Text>
+                <View  style={styles.mobile_no}>
+                <View>
                 <Text style={styles.AlltextColors}>Mobile</Text>
                 <Text style={styles.AlltexFonts}>{item?.userId?.primaryNumber}</Text>
+                </View>
+                <TouchableOpacity style={styles.call_icon} onPress={()=>handleCall(item?.userId?.primaryNumber)}>
+                <CallLogo/>
+                </TouchableOpacity>
+                </View>
                 <Text style={styles.AlltextColors}>Payment</Text>
                 <Text style={styles.AlltexFonts}>{item?.paymentStatus === 'PENDING' ? 'Cash On Delivery' : 'Online'}</Text>
                 <Text style={styles.AlltextColors}>Deliver to</Text>
@@ -426,7 +438,22 @@ const styles = StyleSheet.create({
     marginLeft: 16,
     alignSelf: 'flex-start',
     marginBottom: 16,
-  }
+  },mobile_no:{
+    flexDirection:'row',
+    justifyContent:'space-between',
+    alignItems:'center'
+  },call_icon: {
+    backgroundColor: '#FFFFFF', 
+    borderRadius: 50,
+    padding: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
+    elevation: 6,
+}
 });
 
 export default OrderDetails;
