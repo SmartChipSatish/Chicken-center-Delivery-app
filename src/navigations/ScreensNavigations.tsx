@@ -9,10 +9,13 @@ import SplashScreen from 'react-native-splash-screen';
 import BeforLoginScreens from './BeforLoginScreens';
 import { ToastProvider } from 'react-native-toast-notifications';
 import CustomToast from '../Hooks/CustomToast';
+import LottieView from "lottie-react-native";
 
+const splashScreen = require('./splash_screen.json')
 
 export default function ScreensNavigations() {
   const [login, setLogin] = useState(false);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     setTimeout(() => {
@@ -22,6 +25,9 @@ export default function ScreensNavigations() {
 
   const Checkuser = async () => {
     const Accesstoken = await AsyncStorage.getItem('Accesstoken');
+    setTimeout(() => {
+      setLoading(false);
+      }, 3000);
     if(Accesstoken){
       setLogin(true);
     }
@@ -33,7 +39,7 @@ export default function ScreensNavigations() {
 
   return (
     <Provider store={store}>
-      <NavigationContainer>
+      {!loading &&<NavigationContainer>
       <ToastProvider
         renderType={{
           custom_type: (toast) => (
@@ -49,7 +55,13 @@ export default function ScreensNavigations() {
       >
         { login ? <ScreensContainer /> : <BeforLoginScreens/> } 
       </ToastProvider>
-      </NavigationContainer>
+      </NavigationContainer>}
+      {loading && <LottieView
+                source={splashScreen}
+                style={{ width: "100%", height: "100%", backgroundColor: '#FFFFFF' }}
+                autoPlay
+                loop
+            />}
     </Provider>
   )
 }
